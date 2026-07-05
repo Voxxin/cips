@@ -1,0 +1,18 @@
+# Cobol Section
+
+### COBOL Binaries.
+cobol/build/
+cobol/output/
+
+
+# Workspace
+
+.obsidian/
+
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

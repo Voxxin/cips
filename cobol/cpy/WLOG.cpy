@@ -1,0 +1,212 @@
+      *================================================================*
+      * WLOG.cpy                                                       *
+      *================================================================*
+
+       01 LOG-DUMMY.
+        02 LGCV-JOB-SKIPPED PIC 9(4).
+
+       01 LOG-INFO.
+        02 LG-TYPE PIC X(5).
+         88 LT-INFO VALUE 'INFO '.
+         88 LT-WARN VALUE 'WARN '.
+         88 LT-ERROR VALUE 'ERROR'.
+         88 LT-FATAL VALUE 'FATAL'.
+        02 LG-STATUS-CODE PIC 9(4).
+        02 LG-RETURN-CODE PIC 9(4) VALUE '0000'.
+         88 LG-RETURN-ERROR VALUE '0008'.
+         88 LG-RETURN-FATAL VALUE '0012'.
+        02 LG-END-RETURN-CODE PIC 9(4) VALUE '0000'.
+        02 LG-TEXT PIC X(100) VALUE SPACE.
+        02 LG-LOG-FILE-NAME PIC X(25).
+        02 LG-TRAN-PROCESSED PIC 9(4) VALUE ZERO.
+        02 LG-TRAN-PASSED PIC 9(4) VALUE ZERO.
+        02 LG-TRAN-SKIPPED PIC 9(4) VALUE ZERO.
+        02 LG-TRAN-FAILED PIC 9(4) VALUE ZERO.
+
+      * -    PROGRAM SECTION IDENTIFIER
+
+       01  LOG-ACTION-START.
+        02 LGS-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0001'.
+
+       01  LOG-ACTION-CLOSE-V.
+        02 LGCV-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0002'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "STATUS=".
+        02 LGCV-JOB-STATUS PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(10) VALUE "PROCESSED=".
+        02 LGCV-JOB-PROCESSED PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "PASSED=".
+        02 LGCV-JOB-PASSED PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "FAILED=".
+        02 LGCV-JOB-FAILED PIC 9(4).
+
+       01  LOG-ACTION-CLOSE-P.
+        02 LGCP-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0002'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "STATUS=".
+        02 LGCP-JOB-STATUS PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(10) VALUE "PROCESSED=".
+        02 LGCP-JOB-PROCESSED PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "PASSED=".
+        02 LGCP-JOB-PASSED PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(8) VALUE "SKIPPED=".
+        02 LGCP-JOB-SKIPPED PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "FAILED=".
+        02 LGCP-JOB-FAILED PIC 9(4).
+      
+      * -    FILE SECTION IDENTIFIER
+
+       01  LOG-ACTION-FILE.
+        02 LGF-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 LGF-STATUS-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE "FILE=".
+        02 LGF-FILE PIC X(25).
+
+       01  LOG-ACTION-FILE-CLOSE.
+        02 LGFC-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 LGFC-STATUS-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE "FILE=".
+        02 LGFC-FILE PIC X(25).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(8) VALUE "RECORDS=".
+        02 LGFC-RECORD-COUNT PIC 9(5) VALUE ZERO.
+
+      * -    TRANSACTION SECTION IDENTIFIER
+
+      * --  GENERAL SECTION
+
+       01  LOG-ACTION-TRANSACTION-START.
+        02 LGTS-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0020'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "ETE=".
+        02 LGTS-TRANSACTION-ETE-ID PIC X(35).
+
+      * ##  A Z instead of a S to differentiate it from Start 
+       01  LOG-ACTION-TRANSACTION-ZKIP.
+        02 LGTZ-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0022'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "ETE=".
+        02 LGTZ-TRANSACTION-ETE-ID PIC X(35).
+
+       01  LOG-ACTION-TRANSACTION-CLOSE.
+        02 LGTC-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 LGTC-TYPE PIC X(5).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0021'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "RET=".
+        02 LGTC-RETURN-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "ETE=".
+        02 LGTC-TRANSACTION-ETE-ID PIC X(35).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "SENDER=".
+        02 LGTC-SENDER-ID PIC X(10).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(9) VALUE "RECEIVER=".
+        02 LGTC-RECEIVER-ID PIC X(10).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "AMOUNT=".
+        02 LGTC-AMOUNT PIC Z(11)9.99.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(9) VALUE "CURRENCY=".
+        02 LGTC-CURRENCY PIC X(3).
+
+       01  LOG-TRANSACTION-ERROR.
+        02 LGTE-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 LGTE-TYPE PIC X(5).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 LGTE-STATUS-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE "ACCT=".
+        02 LGTE-ACCOUNT PIC X(10).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "ETE=".
+        02 LGTE-TRANSACTION PIC X(35).
+        02 FILLER PIC X VALUE "|".
+        02 LGTE-MESSAGE PIC X(100).
+
+      * --  VALIDATION SECTION
+
+       01 LOG-ACTION-VALID.
+        02 LGV-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE  "INFO ".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 LGV-STATUS-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE "ACCT=".
+        02 LGV-ACCOUNT PIC X(10).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(4) VALUE "ETE=".
+        02 LGV-TRANSACTION PIC X(35).
+        02 FILLER PIC X VALUE "|".
+        02 LGV-MESSAGE PIC X(100).
+
+       01  LOG-ACTION-ERROR.
+        02 LGE-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 LGE-TYPE PIC X(5).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 LGE-STATUS-CODE PIC 9(4).
+        02 FILLER PIC X VALUE "|".
+        02 LGE-MESSAGE PIC X(100).
