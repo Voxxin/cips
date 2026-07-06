@@ -2,66 +2,96 @@
       * PAF.cpy                                                        *
       *================================================================*
 
-      * --  Resolves sender and receiver accounts from Accounts.dat
-      * -- > Uses AT-LOOKUP to find each account in the loaded table.
-      * -- > Sets WS-SENDER-IDX / WS-RECEIVER-IDX for VALIDATE-TRANSACTION.
+      * ## Resolves sender and receiver accounts from Accounts.dat
+      * ## Uses AT-LOOKUP to find each account in the loaded table.
+      * ## Sets WS-SENDER-IDX / WS-RECEIVER-IDX 
+      * ##  for VALIDATE-TRANSACTION.
 
        RESOLVE-ACCOUNTS.
            MOVE :ETE:(:TC:) TO
             LGTE-TRANSACTION
             LGV-TRANSACTION.
-
+           
       * --       FIND SENDER
-           MOVE :SAI:(:TC:)
-            TO AT-LOOKUP-KEY.
+           IF :SAIB:(:TC:)
+            SET WS-SENDER-US TO TRUE
 
-           PERFORM AT-LOOKUP.
-
-           EVALUATE TRUE
-           WHEN AT-LOOKUP-RESULT-EMPTY
             MOVE :SAI:(:TC:)
-             TO LGTE-ACCOUNT
-            MOVE ERR-ACCT-NOT-FOUND TO LG-STATUS-CODE
-            MOVE 'MSG=SENDER ACCOUNT NOT FOUND' TO LG-TEXT
-            PERFORM LOGGING-WARN
-            ADD 1 TO LG-TRAN-FAILED
-            EXIT PARAGRAPH
+             TO AT-LOOKUP-KEY
+ 
+            PERFORM AT-LOOKUP
+ 
+            EVALUATE TRUE
+            WHEN AT-LOOKUP-RESULT-EMPTY
+             MOVE :SAI:(:TC:)
+              TO LGTE-ACCOUNT
+             MOVE ERR-ACCT-NOT-FOUND TO 
+                  LG-STATUS-CODE
+                  VTO-TRNS-STATUS
+             MOVE 'MSG=SENDER ACCOUNT NOT FOUND' TO LG-TEXT
+             PERFORM LOGGING-WARN
+             ADD 1 TO LG-TRAN-FAILED
+             EXIT PARAGRAPH
+ 
+            WHEN OTHER
+             MOVE AT-LOOKUP-RESULT-IDX TO WS-SENDER-IDX
+             MOVE INFO-ACCT-FOUND TO LG-STATUS-CODE
+             MOVE :SAI:(:TC:)
+              TO LGV-ACCOUNT
+             MOVE 'MSG=SENDER ACCOUNT FOUND' TO LG-TEXT
+             PERFORM LOGGING-VALIDATION
+ 
+            END-EVALUATE
+           ELSE
+            SET WS-SENDER-NOT-US TO TRUE
 
-           WHEN OTHER
-            MOVE AT-LOOKUP-RESULT-IDX TO WS-SENDER-IDX
-            MOVE INFO-ACCT-FOUND TO LG-STATUS-CODE
+            MOVE INFO-ACCT-EXTERNAL TO LG-STATUS-CODE
             MOVE :SAI:(:TC:)
              TO LGV-ACCOUNT
-            MOVE 'MSG=SENDER ACCOUNT FOUND' TO LG-TEXT
+            MOVE 'MSG=SENDER ACCOUNT EXTERNAL' TO LG-TEXT
             PERFORM LOGGING-VALIDATION
-
-           END-EVALUATE.
+           END-IF.
 
       * --       FIND RECEIVER
-           MOVE :RAI:(:TC:)
-            TO AT-LOOKUP-KEY.
+           IF :RAIB:(:TC:)
+            SET WS-RECEIVER-US TO TRUE
 
-           PERFORM AT-LOOKUP.
-
-           EVALUATE TRUE
-           WHEN AT-LOOKUP-RESULT-EMPTY
             MOVE :RAI:(:TC:)
-             TO LGTE-ACCOUNT
-            MOVE ERR-ACCT-NOT-FOUND TO LG-STATUS-CODE
-            MOVE 'MSG=RECEIVER ACCOUNT NOT FOUND' TO LG-TEXT
-            PERFORM LOGGING-WARN
-            ADD 1 TO LG-TRAN-FAILED
-            EXIT PARAGRAPH
+             TO AT-LOOKUP-KEY
+ 
+            PERFORM AT-LOOKUP
+ 
+            EVALUATE TRUE
+            WHEN AT-LOOKUP-RESULT-EMPTY
+             MOVE :RAI:(:TC:)
+              TO LGTE-ACCOUNT
+             MOVE ERR-ACCT-NOT-FOUND TO 
+                  LG-STATUS-CODE
+                  VTO-TRNS-STATUS
+             MOVE 'MSG=RECEIVER ACCOUNT NOT FOUND' TO LG-TEXT
+             PERFORM LOGGING-WARN
+             ADD 1 TO LG-TRAN-FAILED
+             EXIT PARAGRAPH
+ 
+            WHEN OTHER
+             MOVE AT-LOOKUP-RESULT-IDX TO WS-RECEIVER-IDX
+             MOVE INFO-ACCT-FOUND TO LG-STATUS-CODE
+             MOVE :RAI:(:TC:)
+              TO LGV-ACCOUNT
+             MOVE 'MSG=RECEIVER ACCOUNT FOUND' TO LG-TEXT
+             PERFORM LOGGING-VALIDATION
+ 
+            END-EVALUATE
+           ELSE
+            SET WS-RECEIVER-NOT-US TO TRUE
 
-           WHEN OTHER
-            MOVE AT-LOOKUP-RESULT-IDX TO WS-RECEIVER-IDX
-            MOVE INFO-ACCT-FOUND TO LG-STATUS-CODE
+            MOVE INFO-RECV-EXTERNAL TO LG-STATUS-CODE
             MOVE :RAI:(:TC:)
              TO LGV-ACCOUNT
-            MOVE 'MSG=RECEIVER ACCOUNT FOUND' TO LG-TEXT
-            PERFORM LOGGING-VALIDATION
+            MOVE 'MSG=RECEIVER ACCOUNT EXTERNAL' TO LG-TEXT
 
-       END-EVALUATE.      
+            PERFORM LOGGING-VALIDATION
+       END-IF.      
       
        AT-LOOKUP.
       * --     RESET EXISITNG VALUES

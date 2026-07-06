@@ -44,7 +44,7 @@
 
        COPY WACCT.
        COPY WVRF.
-       COPY WEC.
+       COPY WSC.
        COPY WTS.
        COPY WAF.
        COPY WUAF.
@@ -61,6 +61,9 @@
        COPY WTI REPLACING ==:NAME:== BY ==POSTRN==.
 
        01  WS-MAX-ENTRIES PIC 9(4) VALUE 1000.
+
+       01  WS-ACC-BAL-OLD PIC S9(12)V99.
+       01  WS-ACC-DAILY-OLD PIC 9(12)V99.
        
        PROCEDURE DIVISION.
 
@@ -83,15 +86,15 @@
        POSTRN-LOAD-RECORD.
            MOVE VTO-TRNS-STATUS TO VT-TRNS-STATUS(VT-TC)
            MOVE VTO-T-ETE-ID TO VT-T-ETE-ID(VT-TC)
-           MOVE VTO-T-SNDRA-ID TO VT-T-SNDRA-ID(VT-TC)
-           MOVE VTO-T-RCVRA-ID TO VT-T-RCVRA-ID(VT-TC)
+           MOVE VTO-T-SNDR-ID TO VT-T-SNDR-ID(VT-TC)
+           MOVE VTO-T-RCVR-ID TO VT-T-RCVR-ID(VT-TC)
            MOVE VTO-T-AMOUNT TO VT-T-AMOUNT(VT-TC)
        MOVE VTO-T-CURRENCY TO VT-T-CURRENCY(VT-TC).
 
        POSTRN-HANDLE-RECORD.
       * ## If the transaction didn't pass in the previous step
       * ##  fully skipped.  
-           IF VT-T-FAIL(VT-TC)
+           IF NOT VT-T-SUCCESS(VT-TC)
             ADD 1 TO LG-TRAN-SKIPPED
             PERFORM LOG-TRANSACTION-SKIP
             EXIT PARAGRAPH
@@ -110,15 +113,51 @@
 
        COMPUTE-TRANSACTION.
       * ##  Perform calculations from the sender's account
-       
-           SUBTRACT VT-T-AMOUNT(VT-TC)
-            FROM AT-BALANCE(WS-SENDER-IDX).
-           ADD VT-T-AMOUNT(VT-TC)
-            TO AT-DAILY-SPENT(WS-SENDER-IDX).
+           IF WS-SENDER-US
+            MOVE AT-BALANCE(WS-SENDER-IDX) TO
+               WS-ACC-BAL-OLD
+            MOVE AT-DAILY-SPENT(WS-SENDER-IDX) TO
+               WS-ACC-DAILY-OLD
+            
+            SUBTRACT VT-T-AMOUNT(VT-TC)
+             FROM AT-BALANCE(WS-SENDER-IDX)
+            ADD VT-T-AMOUNT(VT-TC)
+             TO AT-DAILY-SPENT(WS-SENDER-IDX)
+            
+            MOVE AT-ACCOUNT-ID(WS-SENDER-IDX) TO LGV-ACCOUNT
+            MOVE VT-T-ETE-ID(VT-TC) TO LGV-TRANSACTION 
+            MOVE INFO-SENDER-UPDATE TO LG-STATUS-CODE
+            MOVE " " TO LG-TEXT
+            STRING
+              "SIDE=DEBIT|"
+              "PREV-BALANCE=" WS-ACC-BAL-OLD "|"
+              "NEW-BALANCE=" AT-BALANCE(WS-SENDER-IDX) "|"
+              "PREV-DAILY-SPENT=" WS-ACC-DAILY-OLD "|"
+              "NEW-DAILY-SPENT=" AT-DAILY-SPENT(WS-SENDER-IDX)
+              DELIMITED BY SIZE INTO LG-TEXT
+            
+            PERFORM LOGGING-VALIDATION
+           END-IF.
 
       * ##  Perform calculations to the reciever's account
-           ADD VT-T-AMOUNT(VT-TC)
-            TO AT-BALANCE(WS-RECEIVER-IDX).
+           IF WS-RECEIVER-US
+            MOVE AT-BALANCE(WS-SENDER-IDX) TO
+               WS-ACC-BAL-OLD
+            
+            ADD VT-T-AMOUNT(VT-TC)
+             TO AT-BALANCE(WS-RECEIVER-IDX)
+            
+            MOVE AT-ACCOUNT-ID(WS-RECEIVER-IDX) TO LGV-ACCOUNT
+            MOVE VT-T-ETE-ID(VT-TC) TO LGV-TRANSACTION 
+            MOVE INFO-RECEIVER-UPDATE TO LG-STATUS-CODE
+            MOVE " " TO LG-TEXT
+            STRING
+              "SIDE=CREDIT|"
+              "PREV-BALANCE=" WS-ACC-BAL-OLD "|"
+              "NEW-BALANCE=" AT-BALANCE(WS-RECEIVER-IDX)
+              DELIMITED BY SIZE INTO LG-TEXT
+            PERFORM LOGGING-VALIDATION
+           END-IF.
 
        ADD 1 TO LG-TRAN-PASSED.
 
@@ -206,15 +245,17 @@
        COPY PAF 
                  REPLACING ==:TC:== BY ==VT-TC==
                            ==:ETE:== BY ==VT-T-ETE-ID==
-                           ==:SAI:== BY ==VT-T-SNDRA-ID==
-                           ==:RAI:== BY ==VT-T-RCVRA-ID==.
+                           ==:SAI:== BY ==VT-T-SNDR-ID==
+                           ==:SAIB:== BY ==VT-T-SNDR-INS-US==
+                           ==:RAI:== BY ==VT-T-RCVR-ID==
+                           ==:RAIB:== BY ==VT-T-RCVR-INS-US==.
        COPY PLOG 
                  REPLACING ==":REASON:"== BY =="CONT"==
                            ==:LC:== BY ==P==
                            ==:TC:== BY ==VT-TC==
                            ==:ETE:== BY ==VT-T-ETE-ID==
-                           ==:SAI:== BY ==VT-T-SNDRA-ID==
-                           ==:RAI:== BY ==VT-T-RCVRA-ID==
+                           ==:SAI:== BY ==VT-T-SNDR-ID==
+                           ==:RAI:== BY ==VT-T-RCVR-ID==
                            ==:AMT:== BY ==VT-T-AMOUNT== 
                            ==:CUR:== BY ==VT-T-CURRENCY==.      
        COPY PTS.

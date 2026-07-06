@@ -38,14 +38,14 @@
        01 LOG-RECORD PIC X(400).
 
        FD VTO-FILE.
-       01 VTO-RECORD PIC X(73).
+       01 VTO-RECORD PIC X(86).
 
        WORKING-STORAGE SECTION.
        COPY DVRF.
 
        COPY WACCT.
        COPY WVRF.
-       COPY WEC.
+       COPY WSC.
        COPY WTS.
        COPY WAF.
 
@@ -87,8 +87,8 @@
 
        01  WS-T-DATA.
         02 WS-T-END-TO-END-ID PIC X(35).
-        02 WS-T-SENDER-ACCOUNT-ID PIC X(10).
-        02 WS-T-RECEIVER-ACCOUNT-ID PIC X(10).
+        02 WS-T-SENDER-ACCOUNT-ID PIC X(15).
+        02 WS-T-RECEIVER-ACCOUNT-ID PIC X(15).
         02 WS-T-AMOUNT PIC 9(12)V99.
         02 WS-T-CURRENCY PIC X(3).
         02 WS-T-TIMESTAMP PIC 9(13).
@@ -150,10 +150,10 @@
             VTO-T-ETE-ID.
            MOVE TRANSACTION-SENDER-ACCOUNT-ID TO
             TTE-SENDER-ACCOUNT-ID(TRAN-TABLE-COUNT) 
-            VTO-T-SNDRA-ID.
+            VTO-T-SNDR-ID.
            MOVE TRANSACTION-RECEIVER-ACCOUNT-ID TO
             TTE-RECEIVER-ACCOUNT-ID(TRAN-TABLE-COUNT) 
-            VTO-T-RCVRA-ID.
+            VTO-T-RCVR-ID.
            MOVE TRANSACTION-AMOUNT TO
             TTE-AMOUNT(TRAN-TABLE-COUNT) 
             VTO-T-AMOUNT.
@@ -189,9 +189,9 @@
                LGV-TRANSACTION
                VTO-T-ETE-ID.
            MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR) TO
-               VTO-T-SNDRA-ID.
+               VTO-T-SNDR-ID.
            MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR) TO
-               VTO-T-RCVRA-ID.
+               VTO-T-RCVR-ID.
            MOVE TTE-AMOUNT(VALIDATE-TI-CTR) TO
                VTO-T-AMOUNT.
            MOVE TTE-CURRENCY(VALIDATE-TI-CTR) TO
@@ -204,7 +204,9 @@
            PERFORM LOAD-VALIDATION-DATA.
 
            IF WS-T-DUPE
-            MOVE ERR-DUPLICATE-TRANSACTION TO LG-STATUS-CODE
+            MOVE ERR-DUPLICATE-TRANSACTION TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
             MOVE " " TO LG-TEXT
             STRING "ETE=" TTE-END-TO-END-ID(VALIDATE-TI-CTR)
                  "|MSG=DUPLICATE TRANSACTION" 
@@ -212,7 +214,6 @@
             ADD 1 TO LG-TRAN-FAILED
             PERFORM LOGGING-ERROR
 
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             EXIT PARAGRAPH
            END-IF.
@@ -224,7 +225,6 @@
            IF LG-RETURN-CODE = 0
             PERFORM VALIDATE-TRANSACTION
            ELSE
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
            END-IF
            
@@ -236,20 +236,44 @@
       * ##   subsequent transactions in the same batch.
 
        VALIDATE-TRANSACTION.
+           IF WS-SENDER-NOT-US AND WS-RECEIVER-NOT-US
+            MOVE ERR-EXTERNAL-TRANSACTION TO 
+             LG-STATUS-CODE
+             VTO-TRNS-STATUS
+
+            MOVE 
+             'MSG=SENDER AND RECEIVER ACCOUNTS ARE BOTH NON-US EXTERNAL'
+             TO LG-TEXT
+            PERFORM LOGGING-TRANSACTION-ERROR
+
+            PERFORM VTO-FILE-WRITE
+            ADD 1 TO LG-TRAN-FAILED
+            EXIT PARAGRAPH
+           END-IF.
+
       * #        SENDER ACCOUNT STATE
            EVALUATE TRUE
+            WHEN WS-SENDER-NOT-US
+             CONTINUE
+
             WHEN AT-STATUS-FROZEN(WS-SENDER-IDX)
-             MOVE ERR-SENDER-FROZEN TO LG-STATUS-CODE
+             MOVE ERR-SENDER-FROZEN TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE 'MSG=SENDER ACCOUNT FROZEN' TO LG-TEXT
              PERFORM LOGGING-TRANSACTION-ERROR
+
             WHEN AT-STATUS-CLOSED(WS-SENDER-IDX)
-             MOVE ERR-SENDER-CLOSED TO LG-STATUS-CODE
+             MOVE ERR-SENDER-CLOSED TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE 'MSG=SENDER ACCOUNT CLOSED' TO LG-TEXT
              PERFORM LOGGING-TRANSACTION-ERROR
+
             WHEN OTHER
              MOVE INFO-SENDER-ACTIVE TO LG-STATUS-CODE
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -259,7 +283,6 @@
            END-EVALUATE.
 
            IF LG-RETURN-CODE > 0
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             ADD 1 TO LG-TRAN-FAILED
             EXIT PARAGRAPH
@@ -267,18 +290,27 @@
 
       * #        RECEIVER ACCOUNT STATE
            EVALUATE TRUE
+            WHEN WS-RECEIVER-NOT-US
+             CONTINUE
+
             WHEN AT-STATUS-FROZEN(WS-RECEIVER-IDX)
-             MOVE ERR-RECEIVER-FROZEN TO LG-STATUS-CODE
+             MOVE ERR-RECEIVER-FROZEN TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE 'MSG=RECEIVER ACCOUNT FROZEN' TO LG-TEXT
              PERFORM LOGGING-TRANSACTION-ERROR
+
             WHEN AT-STATUS-CLOSED(WS-RECEIVER-IDX)
-             MOVE ERR-RECEIVER-CLOSED TO LG-STATUS-CODE
+             MOVE ERR-RECEIVER-CLOSED TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE 'MSG=RECEIVER ACCOUNT CLOSED' TO LG-TEXT
              PERFORM LOGGING-TRANSACTION-ERROR
+
             WHEN OTHER
              MOVE INFO-RECEIVER-ACTIVE TO LG-STATUS-CODE
              MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -288,7 +320,6 @@
            END-EVALUATE.
 
            IF LG-RETURN-CODE > 0
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             ADD 1 TO LG-TRAN-FAILED
             EXIT PARAGRAPH
@@ -298,9 +329,14 @@
 
       * #        FUNDS
            EVALUATE TRUE
+            WHEN WS-SENDER-NOT-US
+             CONTINUE
+
             WHEN AT-BALANCE(WS-SENDER-IDX) <
               TTE-AMOUNT(VALIDATE-TI-CTR)
-             MOVE ERR-INSUFFICIENT-FUNDS TO LG-STATUS-CODE
+             MOVE ERR-INSUFFICIENT-FUNDS TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE AT-BALANCE(WS-SENDER-IDX) TO WS-FMT-BALANCE
@@ -311,6 +347,7 @@
                     WS-FMT-AMOUNT DELIMITED BY SIZE
                INTO LG-TEXT
              PERFORM LOGGING-TRANSACTION-ERROR
+
             WHEN OTHER
              MOVE INFO-FUNDS-OK TO LG-STATUS-CODE
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -332,7 +369,6 @@
            END-EVALUATE.
 
            IF LG-RETURN-CODE > 0
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             ADD 1 TO LG-TRAN-FAILED
             EXIT PARAGRAPH
@@ -340,8 +376,13 @@
 
       * #        CURRENCY
            EVALUATE TRUE
+            WHEN WS-SENDER-NOT-US
+            CONTINUE
+
             WHEN NOT TTE-VALID-CURRENCY(VALIDATE-TI-CTR)
-             MOVE ERR-UNSUPPORTED-CURRENCY TO LG-STATUS-CODE
+             MOVE ERR-UNSUPPORTED-CURRENCY TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE 'MSG=UNSUPPORTED CURRENCY' TO LG-TEXT
@@ -358,7 +399,6 @@
            END-EVALUATE.
 
            IF LG-RETURN-CODE > 0
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             ADD 1 TO LG-TRAN-FAILED
             EXIT PARAGRAPH
@@ -366,10 +406,15 @@
 
       * #        DAILY LIMIT
            EVALUATE TRUE
+            WHEN WS-SENDER-NOT-US
+             CONTINUE
+
             WHEN (AT-DAILY-SPENT(WS-SENDER-IDX) +
               TTE-AMOUNT(VALIDATE-TI-CTR)) >
               AT-DAILY-LIMIT(WS-SENDER-IDX)
-             MOVE ERR-DAILY-LIMIT-EXCEEDED TO LG-STATUS-CODE
+             MOVE ERR-DAILY-LIMIT-EXCEEDED TO 
+               LG-STATUS-CODE
+               VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
               TO LGTE-ACCOUNT
              MOVE AT-DAILY-LIMIT(WS-SENDER-IDX) TO WS-FMT-LIMIT
@@ -409,7 +454,6 @@
            END-EVALUATE.
 
            IF LG-RETURN-CODE > 0
-            SET VTO-T-FAIL TO TRUE
             PERFORM VTO-FILE-WRITE
             ADD 1 TO LG-TRAN-FAILED
             EXIT PARAGRAPH
@@ -418,11 +462,13 @@
       * ## Update in-memory balances for subsequent batch transactions.
       * ## Never written back to the DB ## that is POSTRN's job.
 
-           SUBTRACT TTE-AMOUNT(VALIDATE-TI-CTR)
-            FROM AT-BALANCE(WS-SENDER-IDX).
-           ADD TTE-AMOUNT(VALIDATE-TI-CTR)
-            TO AT-DAILY-SPENT(WS-SENDER-IDX).
-           ADD 1 TO LG-TRAN-PASSED.
+           IF WS-SENDER-US
+            SUBTRACT TTE-AMOUNT(VALIDATE-TI-CTR)
+             FROM AT-BALANCE(WS-SENDER-IDX)
+            ADD TTE-AMOUNT(VALIDATE-TI-CTR)
+             TO AT-DAILY-SPENT(WS-SENDER-IDX)
+            ADD 1 TO LG-TRAN-PASSED
+           END-IF.
 
            SET VTO-T-SUCCESS TO TRUE.
        PERFORM VTO-FILE-WRITE.
@@ -516,7 +562,9 @@
                  REPLACING ==:TC:== BY ==VALIDATE-TI-CTR==
                            ==:ETE:== BY ==TTE-END-TO-END-ID==
                            ==:SAI:== BY ==TTE-SENDER-ACCOUNT-ID==
-                           ==:RAI:== BY ==TTE-RECEIVER-ACCOUNT-ID==.
+                           ==:SAIB:== BY ==TTE-S-INS-US==
+                           ==:RAI:== BY ==TTE-RECEIVER-ACCOUNT-ID==
+                           ==:RAIB:== BY ==TTE-R-INS-US==.
        COPY PLOG 
                  REPLACING ==":REASON:"== BY =="INIT"==
                            ==:LC:== BY ==V==

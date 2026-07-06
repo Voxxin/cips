@@ -1,9 +1,9 @@
 ## TOOLS
 
-### ERROR CODES
-*NAMING CONVETION: {divisionLetter} <u>E</u>rror <u>C</u>odes*
+### STATUS CODES
+*NAMING CONVETION: {divisionLetter} <u>S</u>tatus <u>C</u>odes*
 
-- [WORKING STORAGE DIVISION](../cobol/cpy/WEC.cpy)
+- [WORKING STORAGE DIVISION](../cobol/cpy/WSC.cpy)
 
 ### TIMESTAMP
 *NAMING CONVETION: {divisionLetter} <u>T</u>ime <u>S</u>tamp*
@@ -69,13 +69,13 @@
 ### [ValidationResults](../ValidationResults.dat)
 *NAMING CONVETION: {divisionLetter} <u>V</u>alidation <u>R</u>esults <u>F</u>ile*
 
-- [DATA DIVISION](./DVRF.cpy)
+- [DATA DIVISION](../cobol/cpy/DVRF.cpy)
 - [WORKING STORAGE DIVISION (table)](../cobol/cpy/WVRF.cpy)
 - [PROCEDURE DIVISION (write file)](../cobol/cpy/PVRF.cpy)
 
 ### [UpdatedAccounts](../UpdatedAccounts.dat)
 *NAMING CONVETION: {divisionLetter} <u>U</u>pdated <u>A</u>ccounts <u>F</u>ile*
 
-- [DATA DIVISION](./DUAF.cpy)
+- [DATA DIVISION](../cobol/cpy/DUAF.cpy)
 - [WORKING STORAGE DIVISION (table)](../cobol/cpy/WUAF.cpy)
 - [PROCEDURE DIVISION (write file)](../cobol/cpy/PUAF.cpy)

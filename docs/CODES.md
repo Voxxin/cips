@@ -22,6 +22,12 @@
 - `0034` - Daily Limit Check Passed
 - `0035` - Sender Account Found
 - `0036` - Receiver Account Found
+- `0037` - Sender Account External
+- `0038` - Receiver Account External
+
+## POSTING/UPDATE EVENTS (0040-0050)
+- `0040` - Sender Account Updated
+- `0041` - Receiver Account Updated
 
 ## CRITICAL / I/O ERRORS (0900-0999)
 - `0901` - File Open Error
@@ -65,6 +71,7 @@
 - `1060` - Invalid PIN
 - `1061` - Missing Authorization Code
 - `1070` - Invalid Routing Number
+- `1071` - Transaction External to System
 
 ## BENEFICIARY / RECEIVER ERRORS (1080-1089)
 - `1080` - Beneficiary Account Frozen/Blocked

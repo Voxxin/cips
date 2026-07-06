@@ -2,18 +2,21 @@
       * WEC.cpy                                                        *
       *================================================================*
 
-      *    Business validation errors (RC=8)
+      * ## Business validation errors (RC=8)
        78  ERR-ACCT-NOT-FOUND VALUE 1001.
        78  ERR-SENDER-FROZEN VALUE 1002.
        78  ERR-SENDER-CLOSED VALUE 1003.
        78  ERR-INSUFFICIENT-FUNDS VALUE 1020.
        78  ERR-DAILY-LIMIT-EXCEEDED VALUE 1030.
        78  ERR-UNSUPPORTED-CURRENCY VALUE 1042.
-       78  ERR-DUPLICATE-TRANSACTION VALUE 1050.
        78  ERR-RECEIVER-FROZEN VALUE 1080.
        78  ERR-RECEIVER-CLOSED VALUE 1081.
 
-      *    Technical / file errors (RC=12)
+      * ## Routing Errors (RC=8)
+       78  ERR-DUPLICATE-TRANSACTION VALUE 1050.
+       78  ERR-EXTERNAL-TRANSACTION VALUE 1071.
+
+      * ## Technical / file errors (RC=12)
        78  ERR-FILE-OPEN-FAILED VALUE 0901.
        78  ERR-FILE-EMPTY VALUE 0903.
        78  ERR-FILE-CLOSED VALUE 0905.
@@ -21,15 +24,19 @@
        78  INFO-FILE-ALREADY-CLOSED VALUE 0906.
        78  ERR-TABLE-OVERFLOW VALUE 0908.
 
-      *    Success / informational
+      * ## Success / informational
        78  INFO-FILE-OPENED VALUE 0010.
        78  INFO-FILE-READ-FIRST VALUE 0011.
        78  INFO-FILE-EOF VALUE 0012.
        78  INFO-FILE-CLOSED VALUE 0013.
        78  INFO-ACCT-FOUND VALUE 0035.
        78  INFO-RECV-FOUND VALUE 0036.
+       78  INFO-ACCT-EXTERNAL VALUE 0037.
+       78  INFO-RECV-EXTERNAL VALUE 0038.
        78  INFO-SENDER-ACTIVE VALUE 0030.
        78  INFO-RECEIVER-ACTIVE VALUE 0031.
        78  INFO-FUNDS-OK VALUE 0032.
        78  INFO-CURRENCY-OK VALUE 0033.
        78  INFO-LIMIT-OK VALUE 0034.
+       78  INFO-SENDER-UPDATE VALUE 0040.
+       78  INFO-RECEIVER-UPDATE VALUE 0041.
