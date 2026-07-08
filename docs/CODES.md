@@ -15,8 +15,8 @@
 - `0022` - Transaction Skipped
 
 ## VALIDATION PASSES (0030-0039)
-- `0030` - Account Status Check Passed (Sender Active)
-- `0031` - Beneficiary Account Status Check Passed (Receiver Active)
+- `0030` - Account Status Check Passed
+- `0031` - Beneficiary Account Status Check Passed
 - `0032` - Funds Check Passed
 - `0033` - Currency Check Passed
 - `0034` - Daily Limit Check Passed
@@ -47,8 +47,9 @@
 - `1005` - Account On Hold
 - `1006` - Invalid Account Type
 - `1007` - Account Dormant
-- `1010` - Sender Account Mismatch (Reserved)
-- `1011` - Receiver Account Mismatch (Reserved)
+- `1010` - Sender Account Mismatch
+- `1011` - Receiver Account Mismatch
+- `1012` - Self-Transfer Not Allowed
 
 ## FUNDS & LIMIT ERRORS (1020-1039)
 - `1020` - Insufficient Funds
@@ -64,7 +65,7 @@
 - `1041` - Currency Mismatch
 - `1042` - Unsupported Currency
 - `1043` - Exchange Rate Unavailable
-- `1050` - Duplicate Transaction (Detection deferred; Java layer guarantees unique ETE-ID)
+- `1050` - Duplicate Transaction
 - `1051` - Cutoff Time Passed
 - `1052` - System Downtime
 - `1053` - Invalid Reference Number
@@ -72,7 +73,3 @@
 - `1061` - Missing Authorization Code
 - `1070` - Invalid Routing Number
 - `1071` - Transaction External to System
-
-## BENEFICIARY / RECEIVER ERRORS (1080-1089)
-- `1080` - Beneficiary Account Frozen/Blocked
-- `1081` - Beneficiary Account Closed

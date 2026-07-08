@@ -35,6 +35,11 @@
 - [WORKING STORAGE DIVISION](../cobol/cpy/WTI.cpy)
 - [PROCEDURE DIVISION](../cobol/cpy/PTI.cpy)
 
+### ESSENTIAL CLEANUP
+*NAMING CONVETION: {divisionLetter} <u>E</u>ssential <u>C</u>lean-Up*
+
+- [PROCEDURE DIVISION](../cobol/cpy/PEC.cpy)
+
 ## FILE IO
 
 ### STATUS
@@ -54,26 +59,26 @@
 
 ## FILES
 
-### [ACCOUNTS](../Accounts.dat)
+### [ACCOUNTS](../cobol/data/Accounts.dat)
 *NAMING CONVETION: {divisionLetter} <u>Acc</u>oun<u>t</u>*
 
 - [DATA DIVISION](../cobol/cpy/DACCT.cpy)
 - [WORKING STORAGE DIVISION (table)](../cobol/cpy/WACCT.cpy)
 
-### [TRANSACTIONS](../Transactions.dat)
+### [TRANSACTIONS](../data/Transactions.dat)
 *NAMING CONVETION: {divisionLetter} <u>Tran</u>sactions*
 
 - [DATA DIVISION](../cobol/cpy/DTRAN.cpy)
 - [WORKING STORAGE DIVISION (table)](../cobol/cpy/WTRAN.cpy)
 
-### [ValidationResults](../ValidationResults.dat)
+### [ValidationResults](../output/ValidationResults.dat)
 *NAMING CONVETION: {divisionLetter} <u>V</u>alidation <u>R</u>esults <u>F</u>ile*
 
 - [DATA DIVISION](../cobol/cpy/DVRF.cpy)
 - [WORKING STORAGE DIVISION (table)](../cobol/cpy/WVRF.cpy)
 - [PROCEDURE DIVISION (write file)](../cobol/cpy/PVRF.cpy)
 
-### [UpdatedAccounts](../UpdatedAccounts.dat)
+### [UpdatedAccounts](../output/UpdatedAccounts.dat)
 *NAMING CONVETION: {divisionLetter} <u>U</u>pdated <u>A</u>ccounts <u>F</u>ile*
 
 - [DATA DIVISION](../cobol/cpy/DUAF.cpy)

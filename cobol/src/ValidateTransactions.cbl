@@ -48,9 +48,9 @@
        COPY WSC.
        COPY WTS.
        COPY WAF.
+       COPY WTRAN.
 
        COPY WLOG REPLACING "PGMNAME" BY "VALTRN".
-       COPY WTRAN  REPLACING "PGMNAME" BY "VALTRN".
 
        COPY WFS REPLACING ==:FNAME:== BY ==ACCT==.
        COPY WFS REPLACING ==:FNAME:== BY ==TRAN==.
@@ -184,6 +184,7 @@
        ADD 1 TO TRND-APPEAR(DUPE-TI-CTR).
 
        LOAD-VALIDATION-DATA.
+           MOVE 0 TO VTO-TRNS-STATUS.
            MOVE TTE-END-TO-END-ID(VALIDATE-TI-CTR) TO
                LGTE-TRANSACTION
                LGV-TRANSACTION
@@ -251,13 +252,25 @@
             EXIT PARAGRAPH
            END-IF.
 
+           IF AT-ACCOUNT-ID(WS-SENDER-IDX) 
+             EQUAL AT-ACCOUNT-ID(WS-RECEIVER-IDX)
+            MOVE ERR-SELF-TRANSFER TO
+             LG-STATUS-CODE
+             VTO-TRNS-STATUS
+            MOVE
+             'MSG=SENDER AND RECEIVER ARE THE SAME ACCOUNT'
+            TO LG-TEXT
+            ADD 1 TO LG-TRAN-FAILED
+            EXIT PARAGRAPH
+           END-IF.
+
       * #        SENDER ACCOUNT STATE
            EVALUATE TRUE
             WHEN WS-SENDER-NOT-US
              CONTINUE
 
             WHEN AT-STATUS-FROZEN(WS-SENDER-IDX)
-             MOVE ERR-SENDER-FROZEN TO 
+             MOVE ERR-ACCOUNT-FROZEN TO 
                LG-STATUS-CODE
                VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -266,7 +279,7 @@
              PERFORM LOGGING-TRANSACTION-ERROR
 
             WHEN AT-STATUS-CLOSED(WS-SENDER-IDX)
-             MOVE ERR-SENDER-CLOSED TO 
+             MOVE ERR-ACCOUNT-CLOSED TO 
                LG-STATUS-CODE
                VTO-TRNS-STATUS
              MOVE TTE-SENDER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -294,7 +307,7 @@
              CONTINUE
 
             WHEN AT-STATUS-FROZEN(WS-RECEIVER-IDX)
-             MOVE ERR-RECEIVER-FROZEN TO 
+             MOVE ERR-ACCOUNT-FROZEN TO 
                LG-STATUS-CODE
                VTO-TRNS-STATUS
              MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -303,7 +316,7 @@
              PERFORM LOGGING-TRANSACTION-ERROR
 
             WHEN AT-STATUS-CLOSED(WS-RECEIVER-IDX)
-             MOVE ERR-RECEIVER-CLOSED TO 
+             MOVE ERR-ACCOUNT-CLOSED TO 
                LG-STATUS-CODE
                VTO-TRNS-STATUS
              MOVE TTE-RECEIVER-ACCOUNT-ID(VALIDATE-TI-CTR)
@@ -475,33 +488,10 @@
 
       * ##     UTILITY PARAGRAPHS
 
-       ABORT-WITH-FATAL.
-           PERFORM LOGGING-FATAL.
-       PERFORM CLEAN-UP.
-
-       CLEAN-UP.
+       PRE-CLOSE.
            PERFORM CLOSE-TRAN-FILE.
            PERFORM CLOSE-ACCT-FILE.
-           PERFORM CLOSE-VTO-FILE.
-
-      * ## All fail or fatal -> skips PostTransactions
-      * ## Partial fail -> PostTransactions processes the OK ones.
-
-           EVALUATE TRUE
-           WHEN LG-TRAN-PROCESSED = LG-TRAN-FAILED
-                 OR LG-RETURN-FATAL
-            IF LG-RETURN-CODE > LG-END-RETURN-CODE
-             MOVE LG-RETURN-CODE TO LG-END-RETURN-CODE
-            END-IF
-            COMPUTE RETURN-CODE = LG-END-RETURN-CODE
-           WHEN OTHER
-            COMPUTE RETURN-CODE = 0
-           END-EVALUATE.
-
-           MOVE RETURN-CODE TO LG-END-RETURN-CODE
-
-           PERFORM LOG-CLOSE.
-       GOBACK.
+       PERFORM CLOSE-VTO-FILE.
 
       * #        COPY BOOKS
 
@@ -511,19 +501,16 @@
                      ":FFILE:" BY "Transactions.dat"
                      ==:FMODE:== BY ==INPUT==
                      ==:TC:== BY ==TRAN-TABLE-COUNT==.
-
        COPY PFT
             REPLACING ==:FNAME:== BY ==ACCT==
                      ":FFILE:" BY "Accounts.dat"
                      ==:FMODE:== BY ==INPUT==
                      ==:TC:== BY ==AT-TC==.
-
        COPY PFT
             REPLACING ==:FNAME:== BY ==VTO==
                      ":FFILE:" BY "ValidationResults.dat"
                      ==:FMODE:== BY ==OUTPUT==
                      ==:TC:== BY ==VTO-TC==.
-
        COPY PFT
             REPLACING ==:FNAME:== BY ==LOG==
                      ":FFILE:" BY "JOB.log"
@@ -575,6 +562,7 @@
                            ==:AMT:== BY ==TTE-AMOUNT== 
                            ==:CUR:== BY ==TTE-CURRENCY==.
        COPY PTS.
+       COPY PEC.
 
       * ## Final output of validation results
        COPY PVRF.

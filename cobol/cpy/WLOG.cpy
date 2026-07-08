@@ -4,6 +4,10 @@
 
        01 LOG-DUMMY.
         02 LGCV-JOB-SKIPPED PIC 9(4).
+        02 LGCR-JOB-PROCESSED PIC 9(4).
+        02 LGCR-JOB-PASSED PIC 9(4).
+        02 LGCR-JOB-SKIPPED PIC 9(4).
+        02 LGCR-JOB-FAILED PIC 9(4).
 
        01 LOG-INFO.
         02 LG-TYPE PIC X(5).
@@ -78,7 +82,19 @@
         02 FILLER PIC X VALUE "|".
         02 FILLER PIC X(7) VALUE "FAILED=".
         02 LGCP-JOB-FAILED PIC 9(4).
-      
+
+       01  LOG-ACTION-CLOSE-R.
+        02 LGCR-TIMESTAMP PIC X(27).
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(5) VALUE 'INFO '.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(6) VALUE "PGMNAME".
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC 9(4) VALUE '0002'.
+        02 FILLER PIC X VALUE "|".
+        02 FILLER PIC X(7) VALUE "STATUS=".
+        02 LGCR-JOB-STATUS PIC 9(4).
+
       * -    FILE SECTION IDENTIFIER
 
        01  LOG-ACTION-FILE.

@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-           PROGRAM-ID. PostTransaction.
+           PROGRAM-ID. PostTransactions.
            AUTHOR. ELLA LOVE.
 
        ENVIRONMENT DIVISION.
@@ -37,7 +37,7 @@
        01 LOG-RECORD PIC X(400).
 
        FD UAO-FILE.
-       01 UAO-RECORD PIC X(52).
+       01 UAO-RECORD PIC X(57).
 
        WORKING-STORAGE SECTION.
        COPY DUAF.
@@ -48,9 +48,9 @@
        COPY WTS.
        COPY WAF.
        COPY WUAF.
+       COPY WTRAN.
 
        COPY WLOG REPLACING "PGMNAME" BY "POSTRN".
-       COPY WTRAN  REPLACING "PGMNAME" BY "POSTRN".
 
        COPY WFS REPLACING ==:FNAME:== BY ==ACCT==.
        COPY WFS REPLACING ==:FNAME:== BY ==LOG==.
@@ -66,7 +66,6 @@
        01  WS-ACC-DAILY-OLD PIC 9(12)V99.
        
        PROCEDURE DIVISION.
-
        MAIN.
            PERFORM LOG-START.
 
@@ -141,7 +140,7 @@
 
       * ##  Perform calculations to the reciever's account
            IF WS-RECEIVER-US
-            MOVE AT-BALANCE(WS-SENDER-IDX) TO
+            MOVE AT-BALANCE(WS-RECEIVER-IDX) TO
                WS-ACC-BAL-OLD
             
             ADD VT-T-AMOUNT(VT-TC)
@@ -168,30 +167,12 @@
            MOVE AT-DAILY-SPENT(POSTRN-TI-CTR) TO UAO-DS
        PERFORM UAO-FILE-WRITE.
 
-       ABORT-WITH-FATAL.
-           PERFORM LOGGING-FATAL.
-       PERFORM CLEAN-UP.
+      * ##     UTILITY PARAGRAPHS
 
-       CLEAN-UP.
+       PRE-CLOSE.
            PERFORM CLOSE-ACCT-FILE.
            PERFORM CLOSE-VTO-FILE.
-           PERFORM CLOSE-UAO-FILE.
-
-           EVALUATE TRUE
-           WHEN LG-TRAN-PROCESSED = LG-TRAN-FAILED
-                 OR LG-RETURN-FATAL
-            IF LG-RETURN-CODE > LG-END-RETURN-CODE
-             MOVE LG-RETURN-CODE TO LG-END-RETURN-CODE
-            END-IF
-            COMPUTE RETURN-CODE = LG-END-RETURN-CODE
-           WHEN OTHER
-            COMPUTE RETURN-CODE = 0
-           END-EVALUATE.
-
-           MOVE RETURN-CODE TO LG-END-RETURN-CODE
-
-           PERFORM LOG-CLOSE.
-       GOBACK.
+       PERFORM CLOSE-UAO-FILE.
 
       * #      COPY BOOKS
 
@@ -206,13 +187,11 @@
                      ":FFILE:" BY "ValidationResults.dat"
                      ==:FMODE:== BY ==INPUT==
                      ==:TC:== BY ==VT-TC==.
-
        COPY PFT
             REPLACING ==:FNAME:== BY ==UAO==
                      ":FFILE:" BY "UpdatedAccounts.dat"
                      ==:FMODE:== BY ==OUTPUT==
                      ==:TC:== BY ==UAO-TC==.
-
        COPY PFT
             REPLACING ==:FNAME:== BY ==LOG==
                      ":FFILE:" BY "JOB.log"
@@ -259,6 +238,7 @@
                            ==:AMT:== BY ==VT-T-AMOUNT== 
                            ==:CUR:== BY ==VT-T-CURRENCY==.      
        COPY PTS.
+       COPY PEC.
 
       * ## Final output of account rebalances
        COPY PUAF.
