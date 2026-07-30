@@ -4,15 +4,49 @@
 cobol/build/
 cobol/output/
 
+# Java Section
+
+### Gradle
+java/.gradle/
+java/**/build/
+!java/gradle/wrapper/gradle-wrapper.jar
+!java/**/src/main/**/build/
+!java/**/src/test/**/build/
+
+### Java Binaries & Outputs
+java/.apt_generated
+java/.classpath
+java/.factorypath
+java/.project
+java/.settings/
+java/.springBeans
+java/.sts4-cache/
+java/**/bin/
+!java/**/src/main/**/bin/
+!java/**/src/test/**/bin/
+
+### NetBeans
+java/nbproject/private/
+java/nbbuild/
+java/dist/
+java/nbdist/
+java/.nb-gradle/
 
 # Workspace
 
 .obsidian/
-
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
 *~
+
+### VSCode
 .vscode/
+
+### IntelliJ
 .idea/
+*.iws
+*.iml
+*.ipr
+out/
