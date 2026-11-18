@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">
+    <CstmrCdtTrfInitn>
+        <GrpHdr>
+            <MsgId>TEST-A000A00AA0000A00</MsgId>
+            <CreDtTm>2026-11-08T04:05:06-08:00</CreDtTm>
+            <NbOfTxs>1</NbOfTxs>
+            <InitgPty></InitgPty>
+        </GrpHdr>
+        <PmtInf>
+            <PmtInfId>PMNT-A000A00AA0000A00</PmtInfId>
+            <PmtMtd>TRF</PmtMtd>
+            <ReqdExctnDt>
+                <Dt>2026-11-08</Dt>
+            </ReqdExctnDt>
+            <Dbtr></Dbtr>
+            <DbtrAcct>
+                <Id>
+                    <Othr>
+                        <Id>ACCT-A000A00AA0000A00</Id>
+                    </Othr>
+                </Id>
+            </DbtrAcct>
+            <DbtrAgt>
+                <FinInstnId></FinInstnId>
+            </DbtrAgt>
+            <CdtTrfTxInf>
+                <PmtId>
+                    <EndToEndId>ETEI-A000A00AA0000A00</EndToEndId>
+                </PmtId>
+                <Amt><InstdAmt Ccy="CAD">100 </InstdAmt></Amt>
+            </CdtTrfTxInf>
+        </PmtInf>
+    </CstmrCdtTrfInitn>
+</Document>

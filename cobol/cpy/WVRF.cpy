@@ -13,12 +13,12 @@
          03 VT-T-SNDR-ID.
           04 VT-T-SNDR-T PIC X(5).
           04 VT-T-SNDR-I PIC X(3).
-           88 VT-T-SNDR-INS-US VALUE 'CIP'.
+           88 VT-T-SNDR-INS-US VALUE '999'.
           04 VT-T-SNDR-N PIC X(7).
          03 VT-T-RCVR-ID.
           04 VT-T-RCVR-T PIC X(5).
           04 VT-T-RCVR-I PIC X(3).
-           88 VT-T-RCVR-INS-US VALUE 'CIP'.
+           88 VT-T-RCVR-INS-US VALUE '999'.
           04 VT-T-RCVR-N PIC X(7).
          03 VT-T-AMOUNT PIC 9(12)V99.
          03 VT-T-CURRENCY PIC X(3).

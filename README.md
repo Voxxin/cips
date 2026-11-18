@@ -18,16 +18,22 @@ A batch run is three programs, executed in strict sequence, each one reading the
 
 **PostTransactions** reads those validation results and posts every transaction that passed. Anything that failed validation is skipped and logged as skipped, without stopping the run. Sender and receiver balances are recalculated and every account touched by the batch gets its final state written out for the next step.
 
-**ReportTransactions** always runs, no matter what happened in the two steps before it. It reads the validation results and the updated account file, and produces two outputs at once: a formatted, human-readable settlement report built with COBOL's Report Writer, and a structured settlement manifest meant to be consumed downstream by a Java middleware for generating pacs.002 response messages and updating an account database.
+**ReportTransactions** always runs, no matter what happened in the two steps before it. It reads the validation results and the updated account file, and produces two outputs at once: a formatted, human-readable settlement report built with COBOL's Report Writer, and a structured settlement manifest meant to be consumed downstream by a Java middleware for generating pain.002 response messages and updating an account database.
 
 That last point matters more than it might look. A batch job that silently stops because one program failed is a batch job nobody would trust with real money. CIPS is built so the reporting step is unconditional, the same way a real settlement job has to close out and report on the batch whether every item cleared or not.
+
+## Messaging
+
+CIPS speaks ISO 20022 at its edge. A client submits a payment instruction as a `pain.001.001.09` (customer credit transfer initiation). The server validates it against the schema and answers with a `pain.002` payment status report, or an `admi.002` rejection when a message is malformed, unsupported, or fails validation. Support for `pacs.008` interbank messages may be added later.
+
+The COBOL core has no awareness of XML. Translation in both directions lives in the Java layer, which also maps the internal 4-digit status codes (see `docs/CODES.md`) to ISO reason codes. The ISO-facing code uses debtor and creditor to match the XML tags, while the COBOL core uses sender and receiver. They are the same two parties described in two vocabularies, one per layer.
 
 ## Output files
 
 Every run produces the following inside `output/`:
 
 - `BatchAuditTrail.report`: the formatted report of the whole run, generated with Report Writer
-- `BatchSettlementManifest.dat`: structured output built for the Java middleware to generate pacs.002 responses and update account balances
+- `BatchSettlementManifest.dat`: structured output built for the Java middleware to generate pain.002 responses and update account balances
 - `JOB.log`: a complete log of every step and change across all three programs
 - `ValidationResults.dat`: validation state handed from ValidateTransactions to PostTransactions
 - `UpdatedAccounts.dat`: final account state handed from PostTransactions to ReportTransactions
@@ -48,8 +54,23 @@ The account and transaction files are fixed-width, no delimiters, implied decima
 
 The copybook layer underneath all three programs is built around reusable, parameterized patterns rather than copy-pasted logic. File open and close handling, table iteration, account lookups, and logging are all shared copybooks referenced with `COPY REPLACING`, so adding a fourth program to this pipeline means writing new business logic, not rebuilding file handling from scratch.
 
+## Current status
+
+**COBOL batch core:** three programs, a shared copybook layer, and shell orchestration, working end to end.
+
+**Java middleware (Spring Boot):**
+- Schema-validated `pain.001.001.09` intake, with `admi.002` responses for malformed, unsupported, or invalid requests
+- Stateless HTTP security configuration
+- PostgreSQL schema for accounts, users, transactions, batch runs, and audit logs, managed with Flyway migrations
+- Seed data with five demo customer accounts and one administrator account (demo credentials only)
+- Integration tests running against a Testcontainers PostgreSQL instance
+
+**In progress:** persisting submitted transactions, the flat file writers for the COBOL contract, batch invocation, the settlement manifest reader, and `pain.002` generation.
+
+**Planned:** REST endpoints per role, the scheduled batch cycle, and an Angular frontend.
+
 ## What's next
 
-The COBOL core is functionally complete. The next phase is a Spring Boot middleware that parses incoming pacs.008 messages, writes them into the exact flat file format this pipeline expects, invokes `submit_batch`, and reads the resulting settlement manifest to generate pacs.002 responses and update a real account database. After that, a REST API and a small frontend will sit on top, so a full transaction, from XML in to settlement response out, can be triggered and watched end to end.
+The next phase connects the pieces end to end. An incoming `pain.001` is validated and stored as a pending transaction. On each batch cycle, the middleware writes the pending transactions into the exact flat file format this pipeline expects, invokes `submit_batch`, and reads the resulting settlement manifest to update the account database and generate `pain.002` responses. After that, a REST API and a small frontend will sit on top, so a full transaction, from XML in to status report out, can be triggered and watched end to end.
 
-The goal is a complete, working simulation of a Canadian interbank settlement pipeline, from the mainframe-style batch core all the way to a modern API in front of it. The COBOL side already proves the hardest part works.
+The goal is a complete, working simulation of a Canadian payment settlement pipeline, from the mainframe-style batch core all the way to a modern API in front of it. The COBOL side already proves the hardest part works.

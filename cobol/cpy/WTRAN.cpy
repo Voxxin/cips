@@ -8,12 +8,12 @@
          03 TTE-SENDER-ACCOUNT-ID.
           04 TTE-S-TRANSIT PIC X(5).
           04 TTE-S-INSTITUTION PIC X(3).
-           88 TTE-S-INS-US VALUE 'CIP'.
+           88 TTE-S-INS-US VALUE '999'.
           04 TTE-S-NUM PIC X(7).
          03 TTE-RECEIVER-ACCOUNT-ID.
           04 TTE-R-TRANSIT PIC X(5).
           04 TTE-R-INSTITUTION PIC X(3).
-           88 TTE-R-INS-US VALUE 'CIP'.
+           88 TTE-R-INS-US VALUE '999'.
           04 TTE-R-NUM PIC X(7).
          03 TTE-AMOUNT PIC 9(12)V99.
          03 TTE-CURRENCY PIC X(3).
